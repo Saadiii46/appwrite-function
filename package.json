@@ -1,0 +1,23 @@
+{
+  "name": "extract-zip",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "adm-zip": "^0.5.16",
+    "appwrite": "^20.0.0",
+    "node-appwrite": "^19.0.0",
+    "unzipper": "^0.12.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.3",
+    "typescript": "^5.9.2"
+  }
+}
