@@ -4,17 +4,17 @@ const AdmZip = require("adm-zip");
 const mime = require("mime-types");
 const sdk = require("node-appwrite");
 
-module.exports = async function (req, context) {
-  context.log("Starting function… (Node 22 uploader, CJS)");
+module.exports = async function (req) {
+  console.log("Starting function… (Node 22 uploader, CJS)");
 
   try {
     // ---------------------------
     // Debug: Log entire request object structure
     // ---------------------------
-    context.log("Request object keys:", Object.keys(req));
-    context.log("Request body:", req.body);
-    context.log("Request payload:", req.payload);
-    context.log("Request bodyRaw:", req.bodyRaw);
+    console.log("Request object keys:", Object.keys(req));
+    console.log("Request body:", req.body);
+    console.log("Request payload:", req.payload);
+    console.log("Request bodyRaw:", req.bodyRaw);
 
     // ---------------------------
     // Parse Payload - For functions.createExecution()
@@ -31,7 +31,7 @@ module.exports = async function (req, context) {
       payload = JSON.parse(req.payload);
     }
 
-    context.log("Final parsed payload:", payload);
+    console.log("Final parsed payload:", payload);
 
     const fileId = payload.fileId;
     const projectSlug = payload.projectSlug;
@@ -116,7 +116,7 @@ module.exports = async function (req, context) {
       body: JSON.stringify({ success: true, files: uploadedFiles }),
     };
   } catch (err) {
-    context.error("Function error:", err);
+    console.error("Function error:", err);
 
     // ❌ ERROR RESPONSE
     return {
