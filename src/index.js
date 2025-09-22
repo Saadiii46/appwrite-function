@@ -4,16 +4,34 @@ const AdmZip = require("adm-zip");
 const mime = require("mime-types");
 const sdk = require("node-appwrite");
 
-module.exports = async function (req) {
-  console.log("Starting function… (Node 22 uploader, CJS)");
+module.exports = async function (req, context) {
+  context.log("Starting function… (Node 22 uploader, CJS)");
 
   try {
     // ---------------------------
-    // Parse Payload
+    // Debug: Log entire request object structure
     // ---------------------------
-    const payload = JSON.parse(req.payload || "{}");
-    console.log("Raw payload:", req.payload);
-    console.log("Parsed payload:", payload);
+    context.log("Request object keys:", Object.keys(req));
+    context.log("Request body:", req.body);
+    context.log("Request payload:", req.payload);
+    context.log("Request bodyRaw:", req.bodyRaw);
+
+    // ---------------------------
+    // Parse Payload - For functions.createExecution()
+    // ---------------------------
+    let payload = {};
+
+    // When using functions.createExecution(functionId, data),
+    // the data is available in req.body or req.bodyRaw
+    if (req.body) {
+      payload = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+    } else if (req.bodyRaw) {
+      payload = JSON.parse(req.bodyRaw);
+    } else if (req.payload) {
+      payload = JSON.parse(req.payload);
+    }
+
+    context.log("Final parsed payload:", payload);
 
     const fileId = payload.fileId;
     const projectSlug = payload.projectSlug;
@@ -27,7 +45,7 @@ module.exports = async function (req) {
       throw new Error("Missing UNIFIED_BUCKET_ID env var");
     }
 
-    console.log(
+    context.log(
       `Payload OK: fileId=${fileId}, projectSlug=${projectSlug}, bucket=${bucketId}`
     );
 
@@ -44,7 +62,7 @@ module.exports = async function (req) {
     // ---------------------------
     // Download zip
     // ---------------------------
-    console.log("Downloading zip file from storage…");
+    context.log("Downloading zip file from storage…");
     const zipFile = await storage.getFileDownload(bucketId, fileId);
     const zipPath = `/tmp/${fileId}.zip`;
     fs.writeFileSync(zipPath, Buffer.from(await zipFile.arrayBuffer()));
@@ -52,12 +70,12 @@ module.exports = async function (req) {
     // ---------------------------
     // Extract zip
     // ---------------------------
-    console.log("Extracting zip…");
+    context.log("Extracting zip…");
     const zip = new AdmZip(zipPath);
     zip.extractAllTo("/tmp/extracted", true);
 
     const extractedFiles = fs.readdirSync("/tmp/extracted");
-    console.log("Files extracted (count):", extractedFiles.length);
+    context.log("Files extracted (count):", extractedFiles.length);
 
     // ---------------------------
     // Helper: Upload file
@@ -80,14 +98,14 @@ module.exports = async function (req) {
     const uploadedFiles = [];
     for (const fileName of extractedFiles) {
       const localPath = path.join("/tmp/extracted", fileName);
-      console.log("Uploading:", fileName);
+      context.log("Uploading:", fileName);
 
       try {
         const uploaded = await tryUpload(localPath, fileName);
-        console.log("Uploaded OK:", uploaded.$id);
+        context.log("Uploaded OK:", uploaded.$id);
         uploadedFiles.push(uploaded.$id);
       } catch (err) {
-        console.error(`Upload failed for ${fileName}`, err);
+        context.error(`Upload failed for ${fileName}`, err);
       }
     }
 
@@ -98,7 +116,7 @@ module.exports = async function (req) {
       body: JSON.stringify({ success: true, files: uploadedFiles }),
     };
   } catch (err) {
-    console.error("Function error:", err);
+    context.error("Function error:", err);
 
     // ❌ ERROR RESPONSE
     return {
