@@ -11,8 +11,8 @@ module.exports = async function (req) {
     // ---------------------------
     // Parse Payload
     // ---------------------------
-    const payload = JSON.parse(req.bodyRaw || "{}");
-    console.log("Raw payload:", req.bodyRaw);
+    const payload = JSON.parse(req.payload || "{}");
+    console.log("Raw payload:", req.payload);
     console.log("Parsed payload:", payload);
 
     const fileId = payload.fileId;
