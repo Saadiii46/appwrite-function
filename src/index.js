@@ -89,10 +89,11 @@ module.exports = async function (req, res) {
       }
     }
 
-    return res.json({
-      success: true,
-      message: "Files processed and uploaded successfully",
-    });
+    return {
+      statusCode: 200,
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ success: true, files: uploaded }),
+    };
   } catch (err) {
     console.error("Function error:", err);
     return res.json({ success: false, error: err.message });
