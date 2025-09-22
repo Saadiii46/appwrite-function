@@ -4,7 +4,7 @@ const AdmZip = require("adm-zip");
 const mime = require("mime-types");
 const sdk = require("node-appwrite");
 
-module.exports = async function (req, res) {
+module.exports = async function (req) {
   console.log("Starting function… (Node 22 uploader, CJS)");
 
   try {
@@ -77,6 +77,7 @@ module.exports = async function (req, res) {
     // ---------------------------
     // Upload extracted files
     // ---------------------------
+    const uploadedFiles = [];
     for (const fileName of extractedFiles) {
       const localPath = path.join("/tmp/extracted", fileName);
       console.log("Uploading:", fileName);
@@ -84,18 +85,26 @@ module.exports = async function (req, res) {
       try {
         const uploaded = await tryUpload(localPath, fileName);
         console.log("Uploaded OK:", uploaded.$id);
+        uploadedFiles.push(uploaded.$id);
       } catch (err) {
         console.error(`Upload failed for ${fileName}`, err);
       }
     }
 
+    // ✅ SUCCESS RESPONSE
     return {
       statusCode: 200,
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ success: true, files: uploaded }),
+      body: JSON.stringify({ success: true, files: uploadedFiles }),
     };
   } catch (err) {
     console.error("Function error:", err);
-    return res.json({ success: false, error: err.message });
+
+    // ❌ ERROR RESPONSE
+    return {
+      statusCode: 500,
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ success: false, error: err.message }),
+    };
   }
 };
