@@ -45,7 +45,7 @@ module.exports = async function (req, context) {
       throw new Error("Missing UNIFIED_BUCKET_ID env var");
     }
 
-    context.log(
+    console.log(
       `Payload OK: fileId=${fileId}, projectSlug=${projectSlug}, bucket=${bucketId}`
     );
 
@@ -62,7 +62,7 @@ module.exports = async function (req, context) {
     // ---------------------------
     // Download zip
     // ---------------------------
-    context.log("Downloading zip file from storage…");
+    console.log("Downloading zip file from storage…");
     const zipFile = await storage.getFileDownload(bucketId, fileId);
     const zipPath = `/tmp/${fileId}.zip`;
     fs.writeFileSync(zipPath, Buffer.from(await zipFile.arrayBuffer()));
@@ -70,12 +70,12 @@ module.exports = async function (req, context) {
     // ---------------------------
     // Extract zip
     // ---------------------------
-    context.log("Extracting zip…");
+    console.log("Extracting zip…");
     const zip = new AdmZip(zipPath);
     zip.extractAllTo("/tmp/extracted", true);
 
     const extractedFiles = fs.readdirSync("/tmp/extracted");
-    context.log("Files extracted (count):", extractedFiles.length);
+    console.log("Files extracted (count):", extractedFiles.length);
 
     // ---------------------------
     // Helper: Upload file
@@ -98,14 +98,14 @@ module.exports = async function (req, context) {
     const uploadedFiles = [];
     for (const fileName of extractedFiles) {
       const localPath = path.join("/tmp/extracted", fileName);
-      context.log("Uploading:", fileName);
+      console.log("Uploading:", fileName);
 
       try {
         const uploaded = await tryUpload(localPath, fileName);
-        context.log("Uploaded OK:", uploaded.$id);
+        console.log("Uploaded OK:", uploaded.$id);
         uploadedFiles.push(uploaded.$id);
       } catch (err) {
-        context.error(`Upload failed for ${fileName}`, err);
+        console.error(`Upload failed for ${fileName}`, err);
       }
     }
 
